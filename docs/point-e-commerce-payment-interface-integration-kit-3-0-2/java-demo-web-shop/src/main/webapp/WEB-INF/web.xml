@@ -1,0 +1,42 @@
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+	"http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+	<display-name>Point E-Commerce Demo Shop</display-name>
+
+    <listener>
+		<listener-class>fi.point.demo.shop.DemoShopServletContextListener</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>TestOrderServlet</servlet-name>
+		<servlet-class>fi.point.demo.shop.DemoOrderServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>TestReceiptServlet</servlet-name>
+		<servlet-class>fi.point.demo.shop.DemoReceiptServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>TestCancelServlet</servlet-name>
+		<servlet-class>fi.point.demo.shop.DemoCancelServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>TestOrderServlet</servlet-name>
+		<url-pattern>/order</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>TestReceiptServlet</servlet-name>
+		<url-pattern>/receipt</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>TestCancelServlet</servlet-name>
+		<url-pattern>/cancel</url-pattern>
+	</servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>order</welcome-file>
+	</welcome-file-list>
+</web-app>

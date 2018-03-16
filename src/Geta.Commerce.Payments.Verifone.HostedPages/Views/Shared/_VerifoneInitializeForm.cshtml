@@ -1,0 +1,15 @@
+﻿@using Geta.Commerce.Payments.Verifone.HostedPages.Extensions
+@using Geta.Verifone
+@model Geta.Commerce.Payments.Verifone.HostedPages.Models.VerifonePaymentRequest
+
+<form method="post" action="@Model.GetPaymentUrl()">
+    @foreach (var key in Model.GetParameters().Keys)
+    {
+        <input type="hidden" id="@key" name="@key" value="@Model.Parameters[key]"/>
+    }
+
+    <input type="hidden" id="@VerifoneConstants.ParameterName.Submit" name="@VerifoneConstants.ParameterName.Submit" value="Submit"/>
+</form>
+<script>
+    document.forms[0].submit();
+</script>

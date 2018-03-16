@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geta.Verifone", "Geta.Verifone\Geta.Verifone.csproj", "{267119B6-0277-4965-A4E6-90754C63DDB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geta.Commerce.Payments.Verifone.HostedPages", "Geta.Commerce.Payments.Verifone.HostedPages\Geta.Commerce.Payments.Verifone.HostedPages.csproj", "{960FDBA1-939E-4946-97B2-7EAC5462BED8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geta.Commerce.Payments.Verifone.HostedPages.Manager", "Geta.Commerce.Payments.Verifone.HostedPages.Manager\Geta.Commerce.Payments.Verifone.HostedPages.Manager.csproj", "{12B1F7DA-4B01-4D2B-B4F2-B3D1FB9135C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{267119B6-0277-4965-A4E6-90754C63DDB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{267119B6-0277-4965-A4E6-90754C63DDB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{267119B6-0277-4965-A4E6-90754C63DDB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{267119B6-0277-4965-A4E6-90754C63DDB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{960FDBA1-939E-4946-97B2-7EAC5462BED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{960FDBA1-939E-4946-97B2-7EAC5462BED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{960FDBA1-939E-4946-97B2-7EAC5462BED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{960FDBA1-939E-4946-97B2-7EAC5462BED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12B1F7DA-4B01-4D2B-B4F2-B3D1FB9135C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12B1F7DA-4B01-4D2B-B4F2-B3D1FB9135C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12B1F7DA-4B01-4D2B-B4F2-B3D1FB9135C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12B1F7DA-4B01-4D2B-B4F2-B3D1FB9135C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
