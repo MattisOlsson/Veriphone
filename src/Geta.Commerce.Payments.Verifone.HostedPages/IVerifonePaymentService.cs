@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
+using EPiServer.Commerce.Order;
 using Geta.Commerce.Payments.Verifone.HostedPages.Models;
-using Mediachase.Commerce.Orders;
 
 namespace Geta.Commerce.Payments.Verifone.HostedPages
 {
@@ -8,7 +8,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
     {
         string GetPaymentLocale(CultureInfo culture);
         string GetPaymentUrl(VerifonePaymentRequest payment);
-        void InitializePaymentRequest(VerifonePaymentRequest payment, OrderGroup orderGroup);
+        void InitializePaymentRequest(VerifonePaymentRequest payment, IOrderGroup orderGroup);
         StatusCode ValidateSuccessReponse(PaymentSuccessResponse response);
     }
 }
