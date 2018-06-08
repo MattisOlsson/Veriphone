@@ -45,7 +45,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages.Extensions
                 row.Parameter = name;
                 row.Value = value;
 
-                paymentMethod.PaymentMethodParameter.Rows.Add(row);
+                paymentMethod.PaymentMethodParameter.AddPaymentMethodParameterRow(row);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages.Extensions
 
         internal static PaymentMethodDto.PaymentMethodParameterRow GetParameterRow(this PaymentMethodDto paymentMethod, string name)
         {
-            var rows = (PaymentMethodDto.PaymentMethodParameterRow[])paymentMethod.PaymentMethodParameter.Select(string.Format("Parameter = '{0}'", name));
+            var rows = (PaymentMethodDto.PaymentMethodParameterRow[])paymentMethod.PaymentMethodParameter.Select($"Parameter = '{name}'");
 
             return rows.Length > 0 ? rows[0] : null;
         }
