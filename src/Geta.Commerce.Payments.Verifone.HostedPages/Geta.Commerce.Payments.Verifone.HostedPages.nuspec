@@ -11,5 +11,9 @@
     <description>Veriphone payment provider for E-Commerce checkouts</description>
     <copyright>Geta 2018</copyright>
     <tags>EPiServer Commerce Veriphone</tags>
+    <dependencies>
+      <dependency id="EPiServer.CMS.Core" version="[11.4, 12)" />
+      <dependency id="EPiServer.Commerce.Core" version="[12, 13)" />
+    </dependencies>
   </metadata>
 </package>
