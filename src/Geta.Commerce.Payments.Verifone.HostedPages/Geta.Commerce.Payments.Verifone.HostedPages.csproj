@@ -247,6 +247,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Extensions\DecimalExtensions.cs" />
     <Compile Include="Extensions\ICurrentMarketExtensions.cs" />
+    <Compile Include="Extensions\MoneyExtensions.cs" />
     <Compile Include="Extensions\UrlExtensions.cs" />
     <Compile Include="Extensions\VerifonePaymentRequestExtensions.cs" />
     <Compile Include="Extensions\PaymentMethodExtensions.cs" />
@@ -254,6 +255,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="IVerifonePaymentService.cs" />
+    <Compile Include="IVerifoneSettings.cs" />
     <Compile Include="MetadataConstants.cs" />
     <Compile Include="MetadataInitialization.cs" />
     <Compile Include="Models\BasketItem.cs" />

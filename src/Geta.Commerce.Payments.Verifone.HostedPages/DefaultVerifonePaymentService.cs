@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using EPiServer.Commerce.Order;
 using EPiServer.Globalization;
 using EPiServer.ServiceLocation;
 using Geta.Commerce.Payments.Verifone.HostedPages.Extensions;
@@ -25,12 +24,14 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
     [ServiceConfiguration(typeof(IVerifonePaymentService))]
     public class DefaultVerifonePaymentService : IVerifonePaymentService
     {
+        protected readonly IOrderGroupTotalsCalculator OrderGroupTotalsCalculator;
         protected readonly IMarket CurrentMarket;
         protected readonly OrderContext OrderContext;
 
-        public DefaultVerifonePaymentService(ICurrentMarket currentMarket)
+        public DefaultVerifonePaymentService(ICurrentMarket currentMarket, IOrderGroupTotalsCalculator orderGroupTotalsCalculator)
         {
             if (currentMarket == null) throw new ArgumentNullException("currentMarket");
+            OrderGroupTotalsCalculator = orderGroupTotalsCalculator;
             CurrentMarket = currentMarket.GetCurrentMarket();
             OrderContext = OrderContext.Current;
         }
@@ -158,32 +159,28 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
         /// </summary>
         /// <param name="payment">The <see cref="VerifonePaymentRequest"/> instance to initialize</param>
         /// <param name="orderGroup"><see cref="OrderGroup"/></param>
-        public virtual void InitializePaymentRequest(VerifonePaymentRequest payment, OrderGroup orderGroup)
+        public virtual void InitializePaymentRequest(VerifonePaymentRequest payment, IOrderGroup orderGroup)
         {
-            OrderAddress billingAddress = FindBillingAddress(payment, orderGroup);
-            OrderAddress shipmentAddress = FindShippingAddress(payment, orderGroup);
+            IOrderAddress billingAddress = FindBillingAddress(payment, orderGroup);
+            IOrderAddress shipmentAddress = FindShippingAddress(payment, orderGroup);
 
             payment.OrderTimestamp = orderGroup.Created.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-            payment.MerchantAgreementCode = this.GetMerchantAgreementCode(payment);
-            payment.PaymentLocale = this.GetPaymentLocale(ContentLanguage.PreferredCulture);
-            payment.OrderNumber = orderGroup.OrderGroupId.ToString(CultureInfo.InvariantCulture.NumberFormat);
+            payment.MerchantAgreementCode = GetMerchantAgreementCode(payment);
+            payment.PaymentLocale = GetPaymentLocale(ContentLanguage.PreferredCulture);
+            payment.OrderNumber = orderGroup.OrderLink.OrderGroupId.ToString(CultureInfo.InvariantCulture.NumberFormat);
 
-            payment.OrderCurrencyCode = this.IsProduction(payment) 
+            payment.OrderCurrencyCode = IsProduction(payment) 
                 ? Iso4217Lookup.LookupByCode(CurrentMarket.DefaultCurrency.CurrencyCode).Number.ToString()
                 : "978";
 
-            payment.OrderGrossAmount = orderGroup.Total.ToVerifoneAmountString();
-            payment.OrderNetAmount = (orderGroup.Total - orderGroup.TaxTotal).ToVerifoneAmountString();
-            payment.OrderVatAmount = orderGroup.TaxTotal.ToVerifoneAmountString();
+            var totals = OrderGroupTotalsCalculator.GetTotals(orderGroup);
 
-            payment.BuyerFirstName = billingAddress != null
-                ? billingAddress.FirstName
-                : null;
+            payment.OrderGrossAmount = totals.Total.ToVerifoneAmountString();
+            payment.OrderNetAmount = (totals.Total - totals.TaxTotal).ToVerifoneAmountString();
+            payment.OrderVatAmount = totals.TaxTotal.ToVerifoneAmountString();
 
-            payment.BuyerLastName = billingAddress != null
-                ? billingAddress.LastName
-                : null;
-
+            payment.BuyerFirstName = billingAddress?.FirstName;
+            payment.BuyerLastName = billingAddress?.LastName;
             payment.OrderVatPercentage = "0";
             payment.PaymentMethodCode = "";
             payment.SavedPaymentMethodId = "";
@@ -193,79 +190,65 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
             payment.SavePaymentMethod = "0";
             payment.SkipConfirmationPage = "0";
 
-            string phoneNumber = billingAddress != null
-                ? billingAddress.DaytimePhoneNumber ?? billingAddress.EveningPhoneNumber
-                : null;
+            string phoneNumber = billingAddress?.DaytimePhoneNumber ?? billingAddress?.EveningPhoneNumber;
 
             if (string.IsNullOrWhiteSpace(phoneNumber) == false)
+            {
                 payment.BuyerPhoneNumber = phoneNumber;
+            }
 
-            payment.BuyerEmailAddress = billingAddress != null
-                ? billingAddress.Email ?? orderGroup.CustomerName
-                : string.Empty;
+            payment.BuyerEmailAddress = billingAddress?.Email ?? orderGroup.Name ?? string.Empty;
 
             if (payment.BuyerEmailAddress.IndexOf('@') < 0)
             {
                 payment.BuyerEmailAddress = null;
             }
 
-            payment.DeliveryAddressLineOne = shipmentAddress != null
-                ? shipmentAddress.Line1
-                : null;
+            payment.DeliveryAddressLineOne = shipmentAddress?.Line1;
 
             if (shipmentAddress != null && string.IsNullOrWhiteSpace(shipmentAddress.Line2) == false)
                 payment.DeliveryAddressLineTwo = shipmentAddress.Line2;
 
-            payment.DeliveryAddressPostalCode = shipmentAddress != null
-                ? shipmentAddress.PostalCode
-                : null;
-
-            payment.DeliveryAddressCity = shipmentAddress != null
-                ? shipmentAddress.City
-                : null;
-
+            payment.DeliveryAddressPostalCode = shipmentAddress?.PostalCode;
+            payment.DeliveryAddressCity = shipmentAddress?.City;
             payment.DeliveryAddressCountryCode = "246";
 
             ApplyPaymentMethodConfiguration(payment);
         }
 
-        protected virtual OrderAddress FindShippingAddress(VerifonePaymentRequest payment, OrderGroup orderGroup)
+        protected virtual IOrderAddress FindShippingAddress(VerifonePaymentRequest payment, IOrderGroup orderGroup)
         {
-            OrderForm orderForm = FindCorrectOrderForm(payment.PaymentMethodId, orderGroup.OrderForms);
-            Shipment shipment = orderForm.Shipments.FirstOrDefault();
+            IOrderForm orderForm = FindCorrectOrderForm(payment.PaymentMethodId, orderGroup.Forms);
+            IShipment shipment = orderForm.Shipments.FirstOrDefault();
 
-            if (shipment != null)
+            if (shipment?.ShippingAddress != null)
             {
-                OrderAddress shipmentAddress = orderGroup.OrderAddresses.FirstOrDefault(x => x.Name == shipment.ShippingAddressId);
-
-                if (shipmentAddress != null)
-                {
-                    return shipmentAddress;
-                }
+                return shipment.ShippingAddress;
             }
 
             return FindBillingAddress(payment, orderGroup);
         }
         
-        protected virtual OrderAddress FindBillingAddress(VerifonePaymentRequest payment, OrderGroup orderGroup)
+        protected virtual IOrderAddress FindBillingAddress(VerifonePaymentRequest payment, IOrderGroup orderGroup)
         {
-            OrderForm orderForm = FindCorrectOrderForm(payment.PaymentMethodId, orderGroup.OrderForms);
-
-            OrderAddress billingAddress = orderGroup.OrderAddresses.FirstOrDefault(x => x.Name == orderForm.BillingAddressId);
+            IOrderForm orderForm = FindCorrectOrderForm(payment.PaymentMethodId, orderGroup.Forms);
+            IPayment orderPayment = orderForm.Payments.FirstOrDefault(x => x.PaymentMethodId == payment.PaymentMethodId);
+            IOrderAddress billingAddress = orderPayment?.BillingAddress;
 
             if (billingAddress == null)
             {
-                billingAddress = orderGroup.OrderAddresses.FirstOrDefault();
+                billingAddress = orderGroup.Forms.SelectMany(x => x.Payments)
+                                                 .FirstOrDefault(x => x.BillingAddress != null)?.BillingAddress;
             }
 
             return billingAddress;
         }
 
-        protected virtual OrderForm FindCorrectOrderForm(Guid paymentMethodId, OrderFormCollection orderForms)
+        protected virtual IOrderForm FindCorrectOrderForm(Guid paymentMethodId, ICollection<IOrderForm> orderForms)
         {
-            foreach (OrderForm orderForm in orderForms)
+            foreach (IOrderForm orderForm in orderForms)
             {
-                Payment payment = orderForm.Payments.FirstOrDefault(x => x.PaymentMethodId == paymentMethodId);
+                IPayment payment = orderForm.Payments.FirstOrDefault(x => x.PaymentMethodId == paymentMethodId);
 
                 if (payment != null)
                 {
@@ -283,7 +266,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
         /// <returns><see cref="StatusCode"/></returns>
         public virtual StatusCode ValidateSuccessReponse(PaymentSuccessResponse response)
         {
-            OrderGroup order = this.OrderContext.GetCart(int.Parse(response.OrderNumber));
+            OrderGroup order = OrderContext.GetCart(int.Parse(response.OrderNumber));
 
             if (order == null)
             {
@@ -337,7 +320,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
             //    return StatusCode.OrderCurrencyCodeMismatch;
             //}
 
-            if (this.VerifySignatures(response) == false)
+            if (VerifySignatures(response) == false)
             {
                 return StatusCode.SignatureInvalid;
             }

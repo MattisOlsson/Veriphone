@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Geta.Verifone.Manager.Prerelease</id>
+    <version>$version$</version>
+    <title>Geta.Verifone.Manager.Prerelease</title>
+    <authors>Geta AS</authors>
+    <owners>Geta AS</owners>
+    <projectUrl>https://github.com/Geta/Veriphone</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Veriphone payment provider for E-Commerce checkouts</description>
+    <copyright>Geta 2018</copyright>
+    <tags>EPiServer Commerce Veriphone</tags>
+    <dependencies>
+      <dependency id="EPiServer.CMS.Core" version="[11.4, 12)" />
+      <dependency id="EPiServer.Commerce.Core" version="[12, 13)" />
+    </dependencies>
+  </metadata>
+</package>
