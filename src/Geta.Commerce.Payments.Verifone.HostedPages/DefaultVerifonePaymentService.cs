@@ -24,14 +24,14 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
     [ServiceConfiguration(typeof(IVerifonePaymentService))]
     public class DefaultVerifonePaymentService : IVerifonePaymentService
     {
-        protected readonly IOrderGroupTotalsCalculator OrderGroupTotalsCalculator;
+        protected readonly IOrderGroupCalculator OrderGroupCalculator;
         protected readonly IMarket CurrentMarket;
         protected readonly OrderContext OrderContext;
 
-        public DefaultVerifonePaymentService(ICurrentMarket currentMarket, IOrderGroupTotalsCalculator orderGroupTotalsCalculator)
+        public DefaultVerifonePaymentService(ICurrentMarket currentMarket, IOrderGroupCalculator orderGroupCalculator)
         {
             if (currentMarket == null) throw new ArgumentNullException("currentMarket");
-            OrderGroupTotalsCalculator = orderGroupTotalsCalculator;
+            OrderGroupCalculator = orderGroupCalculator;
             CurrentMarket = currentMarket.GetCurrentMarket();
             OrderContext = OrderContext.Current;
         }
@@ -173,7 +173,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
                 ? Iso4217Lookup.LookupByCode(CurrentMarket.DefaultCurrency.CurrencyCode).Number.ToString()
                 : "978";
 
-            var totals = OrderGroupTotalsCalculator.GetTotals(orderGroup);
+            var totals = OrderGroupCalculator.GetOrderGroupTotals(orderGroup);
 
             payment.OrderGrossAmount = totals.Total.ToVerifoneAmountString();
             payment.OrderNetAmount = (totals.Total - totals.TaxTotal).ToVerifoneAmountString();
