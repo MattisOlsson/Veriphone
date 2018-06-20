@@ -29,7 +29,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
             if (payment.TransactionType != TransactionType.Authorization.ToString() ||
                 payment.Status != PaymentStatus.Pending.ToString())
             {
-                PaymentProcessingResult.CreateSuccessfulResult(string.Empty);
+                return PaymentProcessingResult.CreateSuccessfulResult(string.Empty);
             }
 
             var settings = ServiceLocator.Current.GetInstance<IVerifoneSettings>();

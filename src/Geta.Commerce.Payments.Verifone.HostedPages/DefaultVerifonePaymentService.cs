@@ -14,7 +14,6 @@ using Geta.Verifone;
 using Geta.Verifone.Extensions;
 using Geta.Verifone.Security;
 using Mediachase.Commerce;
-using Mediachase.Commerce.Orders;
 using Mediachase.Commerce.Orders.Dto;
 using Mediachase.Commerce.Orders.Managers;
 using HashAlgorithm = Geta.Verifone.Security.HashAlgorithm;
@@ -25,15 +24,15 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
     public class DefaultVerifonePaymentService : IVerifonePaymentService
     {
         protected readonly IOrderGroupCalculator OrderGroupCalculator;
+        protected readonly IOrderRepository OrderRepository;
         protected readonly IMarket CurrentMarket;
-        protected readonly OrderContext OrderContext;
 
-        public DefaultVerifonePaymentService(ICurrentMarket currentMarket, IOrderGroupCalculator orderGroupCalculator)
+        public DefaultVerifonePaymentService(ICurrentMarket currentMarket, IOrderRepository orderRepository, IOrderGroupCalculator orderGroupCalculator)
         {
-            if (currentMarket == null) throw new ArgumentNullException("currentMarket");
-            OrderGroupCalculator = orderGroupCalculator;
-            CurrentMarket = currentMarket.GetCurrentMarket();
-            OrderContext = OrderContext.Current;
+            OrderGroupCalculator = orderGroupCalculator ?? throw new ArgumentNullException(nameof(orderGroupCalculator));
+            OrderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            CurrentMarket = currentMarket.GetCurrentMarket() ?? throw new ArgumentNullException(nameof(currentMarket));
+            
         }
 
         #region Public Methods
@@ -176,7 +175,10 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
             var totals = OrderGroupCalculator.GetOrderGroupTotals(orderGroup);
 
             payment.OrderGrossAmount = totals.Total.ToVerifoneAmountString();
-            payment.OrderNetAmount = (totals.Total - totals.TaxTotal).ToVerifoneAmountString();
+
+            var netAmount = orderGroup.PricesIncludeTax ? totals.Total : totals.Total - totals.TaxTotal;
+
+            payment.OrderNetAmount = netAmount.ToVerifoneAmountString();
             payment.OrderVatAmount = totals.TaxTotal.ToVerifoneAmountString();
 
             payment.BuyerFirstName = billingAddress?.FirstName;
@@ -266,7 +268,7 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
         /// <returns><see cref="StatusCode"/></returns>
         public virtual StatusCode ValidateSuccessReponse(PaymentSuccessResponse response)
         {
-            OrderGroup order = OrderContext.GetCart(int.Parse(response.OrderNumber));
+            IOrderGroup order = OrderRepository.Load<ICart>(int.Parse(response.OrderNumber));
 
             if (order == null)
             {
@@ -308,7 +310,10 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages
                 return StatusCode.OrderTimestampMismatch;
             }
 
-            if (response.OrderGrossAmount.Equals(order.Total.ToVerifoneAmountString()) == false)
+            var totals = OrderGroupCalculator.GetOrderGroupTotals(order);
+            var grossAmount = totals.Total.ToVerifoneAmountString();
+
+            if (response.OrderGrossAmount.Equals(grossAmount) == false)
             {
                 return StatusCode.OrderGrossAmountMismatch;
             }
