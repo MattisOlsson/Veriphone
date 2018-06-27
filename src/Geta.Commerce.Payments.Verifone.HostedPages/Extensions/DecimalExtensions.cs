@@ -7,7 +7,15 @@ namespace Geta.Commerce.Payments.Verifone.HostedPages.Extensions
     {
         public static string ToVerifoneAmountString(this decimal number)
         {
-            return Math.Round(number, 2).ToString(CultureInfo.InvariantCulture).Replace(".", "");
+            var rounded = Math.Round(number, 2);
+            var veriphoneString = rounded.ToString(CultureInfo.InvariantCulture);
+
+            if (veriphoneString.IndexOf('.') == -1)
+            {
+                veriphoneString += "00";
+            }
+
+            return veriphoneString.Replace(".", "");
         }
     }
 }
